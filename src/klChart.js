@@ -45,11 +45,13 @@ export default function klChart ( args ) {
   // centrality measures
   _rslts = {};
 
+  // getter for ID of the dom element for the chart
   _chart.domId = function () {
     return _domId;
   };
 
-  _chart._char_ix = function () {
+  // getter for character data, indexed by character ID
+  _chart.char_ix = function () {
     return _char_ix;
   };
 
@@ -71,6 +73,7 @@ export default function klChart ( args ) {
 
   /**
   * perform various initialisation functions on the chart, including event binding
+  * and tooltip creation
   *
   * @method init
   * @param  args object containing (we hope) control_id and data key/value pairs
@@ -93,7 +96,7 @@ export default function klChart ( args ) {
     tip
       .attr('class','d3-tip')
       .offset([-12, 30]) // offset tooltip padding
-      .direction('e')
+      .direction('ne')
       .html( (item) => {
         return '<dl><dt style="color: ' + item.b
           + '" class="name">' + item.d.nice_name
@@ -199,14 +202,14 @@ export default function klChart ( args ) {
   * functions performed after the chart data has loaded
   * - addition of resizing capabilities
   * - adding controls
-  * - calculating the centrality measures
+  * - [pre-]calculating the (unweighted) centrality measures
   * @method postLoad
   */
 
   _chart.postLoad = function () {
     _chart.addSizeListeners();
     _chart.addControls();
-    _rslts = _chart.calculateAll();
+    _chart.calculateAll();
   };
 
   /**
@@ -225,8 +228,6 @@ export default function klChart ( args ) {
   */
 
   _chart.addSizeListeners = function () {
-
-
     // add in plenty of MQs or the chart gets stuck at some sizes
     const mq_h = {
       '(max-width: 399px)': 300,
@@ -281,16 +282,16 @@ export default function klChart ( args ) {
     controlObj = {
       // Standard: our default force-directed graph layout which tries to keep link lengths consistent.
       // Organic: an alternative, highly performant force-based layout which uses a circular arrangement.
+      // Lens: places the node in a circle-like grid, with connected nodes next to each other.
+      // Structural: places nodes which are structurally similar together in the network.
       // Hierarchy: lays out tree-like data top down, usually from a specified node.
       // Sequential: places nodes at distinct levels and minimises crossed links.
-      // Lens: places the node in a circle-like grid, with connected nodes next to each other.
       // Radial: places nodes in concentric circles. ==>
-      // Structural: places nodes which are structurally similar together in the network.
       // Tweak
       layout: {
         title: 'Chart layout',
         default: 'standard',
-        data: ['standard','organic','lens','structural'].map(function (l){
+        data: ['standard','organic','lens','structural','hierarchy','radial'/*,'sequential'*/].map( l => {
           return { value: l, label: l.charAt(0).toUpperCase() + l.slice(1) };
         } )
       },
@@ -377,7 +378,6 @@ export default function klChart ( args ) {
     if ( ! _rslts.kCores ) {
       _rslts.kCores = _chart.kl.graph().kCores({ all: true });
     }
-
     if ( value === 'false' ) {
       value = 0;
       _chart.kl.show( Object.keys(_rslts.kCores.values), true );
@@ -403,9 +403,20 @@ export default function klChart ( args ) {
   */
   function setLayout ( value ) {
     _current.layout = value;
-    // omit 'sequential','hierarchy','radial' for now
+    let layout_opt = {};
+    // omit 'sequential' for now
+    if ( ['hierarchy', 'radial'].includes(value) ) {
+      // set the level
+      let meas = measure_id();
+      if ( meas === 'false' ) {
+        layout_opt.level = 'group';
+      }
+      else {
+        layout_opt.level = meas + '_norm';
+      }
+    }
 
-    _chart.kl.layout( _current.layout );
+    _chart.kl.layout( _current.layout, layout_opt );
   }
 
   /**
@@ -427,8 +438,7 @@ export default function klChart ( args ) {
 
     const measures = centralityMeasures();
     let opt = {},
-    tmp = [],
-    id;
+    tmp = [];
 
     if ( args.name === 'measure' && args.value === 'false' ) {
       delete _current.measure;
@@ -449,8 +459,7 @@ export default function klChart ( args ) {
     }
 
     _current[ args.name ] = args.value;
-    id = _current.measure + '__'
-      + ( _current.weights ? 'wt_true' : 'wt_false' );
+    let id = measure_id();
     // + '__' + ( _current.all ? 'all_true' : 'all_false' );
     if ( _rslts[id] ) {
       _chart.layoutAndAnimate(_rslts[id]);
@@ -468,22 +477,63 @@ export default function klChart ( args ) {
 
     if (measures[ _current.measure ].async) {
       _chart.kl.graph()[ _current.measure ]( opt, function (measure_res){
-        _rslts[id + '_abs'] = measure_res;
         _rslts[id] = normalise( measure_res );
+        saveToNodes(_rslts[id], id);
         _chart.layoutAndAnimate(_rslts[id]);
       });
     }
     else {
-      _rslts[id + '_abs'] = _chart.kl.graph()[ _current.measure ](opt);
-      _rslts[id] = normalise( _rslts[id + '_abs'] );
+      _rslts[id] = normalise( _chart.kl.graph()[ _current.measure ](opt) );
+      saveToNodes(_rslts[id], id);
       _chart.layoutAndAnimate(_rslts[id]);
     }
   };
+
+ /**
+  * generate the appropriate string for the current measure
+  *
+  * @method measure_id
+  * @returns string of the general form measure_name__wt_(true|false)
+  */
+
+  function measure_id () {
+    if ( ! _current.measure ) {
+      return 'false';
+    }
+    return _current.measure + '__' + ( _current.weights ? 'wt_true' : 'wt_false' );
+  }
+
+ /**
+  * save data from one of the centrality calculations to the 'd' of the chart nodes
+  * also put it in the character index for good measure
+  *
+  * BUG? Data does not seem to stay in the `d` object of the chart nodes
+  *
+  * @method saveToNodes
+  * @param results - array of objects with keys id, abs[olute value], [norm'd] value
+  * @param meas_id - the name of the measure
+  */
+
+  function saveToNodes( results, meas_id ) {
+    let h = {};
+    results.forEach( e => {
+      h[e.id] = e;
+      _char_ix[e.id][meas_id + '_abs'] = e.abs;
+      _char_ix[e.id][meas_id + '_norm'] = e.value;
+    });
+   // apply the data to the chart nodes
+   // does this data get saved or is it lost?
+    _chart.kl.each({type: 'node'}, item => {
+      item.d[meas_id + '_abs'] = h[item.id].abs;
+      item.d[meas_id + '_norm'] = h[item.id].value;
+    });
+  }
 
   /**
   * Takes an array of objects representing nodes and applies the appropriate
   * node size transformation
   *
+  * @method layoutAndAnimate
   * @param results array, containing objects with keys id and value
   *
   */
@@ -498,28 +548,26 @@ export default function klChart ( args ) {
 
   /**
   * calculateAll: calculates all unweighted centrality measures
-  * and stores them in an object, keyed by measure_name + '__wt_false'
+  * and stores them in the _rslts object, keyed by measure_name + '__wt_false'
   *
-  * @returns rslts object, to be stored in _rslts for global access
+  * @method calculateAll
   */
   _chart.calculateAll = function () {
     const measures = centralityMeasures(),
-    opt = { all: true },
-    rslts = {};
+    opt = { all: true };
 
     Object.keys(measures).forEach( (m) => {
       if (measures[m].async) {
         _chart.kl.graph()[m](opt, (measure_res) => {
-          rslts[m + '__wt_false_abs'] = measure_res;
-          rslts[m + '__wt_false'] = normalise( measure_res );
+          _rslts[m + '__wt_false'] = normalise( measure_res );
+          saveToNodes(_rslts[m + '__wt_false'], m + '__wt_false');
         });
       }
       else {
-        rslts[m + '__wt_false_abs'] = _chart.kl.graph()[m](opt);
-        rslts[m + '__wt_false'] = normalise( rslts[m + '__wt_false_abs'] );
+        _rslts[m + '__wt_false'] = normalise( _chart.kl.graph()[m](opt) );
+        saveToNodes(_rslts[m + '__wt_false'], m + '__wt_false');
       }
     });
-    return rslts;
   };
 
   return _chart;

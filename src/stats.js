@@ -5,7 +5,8 @@ import d3 from 'd3';
   *
   * @method normalise
   * @param  results - object containing centrality data, keyed by character ID
-  * @returns array of objects with keys id: character ID, value: normalised value
+  * @returns array of objects with keys id: character ID, value: normalised value,
+  *          abs: absolute value
   */
 
 export function normalise ( results ) {
@@ -13,7 +14,7 @@ export function normalise ( results ) {
     .domain( d3.extent( Object.values(results) ) )
     .range([0, 10]);
   return Object.keys(results).map( (id) => {
-    return { id: id, value: scale(results[id]) };
+    return { id: id, abs: results[id], value: scale(results[id]) };
   });
 }
 
