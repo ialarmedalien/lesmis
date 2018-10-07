@@ -1,0 +1,97 @@
+/* modules/typo */
+
+
+h1, h2, h3, h4, h5, h6, caption, .h2, .h3, .h4, .h5, .h6 {
+  font-family: $typeface-display;
+//  padding: 0;
+//  margin: 0 0 $line-ht;
+
+  // from taxon_details.tt
+  padding: 0;
+  margin: 0;
+
+}
+
+/** "Golden rhythm" font sizes
+$h1-font-size: 4.25rem; // 68px
+$h1-lines: 3;
+$h1-line-height: $line-ht * $h1-lines;
+
+$h2-font-size: 2.625rem;  // 42px
+$h2-lines: 2;
+$h2-line-height: $line-ht * $h2-lines;
+
+$h3-font-size: 1.625rem;  // 26px
+$h3-lines: 2;
+$h3-line-height: $line-ht * $h3-lines;
+
+$h4-font-size: 1.25rem;   // 20px
+$h4-lines: 1;
+$h4-line-height: $line-ht * $h4-lines;
+*/
+
+// 36px
+h1, .h1 {
+  font-size: 2.25rem;
+  line-height: 2*$line-ht;
+  text-align: center;
+  margin-bottom: $line-ht;
+}
+
+// 28px
+h2, .h2 {
+  font-size: 1.75rem;
+  line-height: 2*$line-ht;
+}
+
+// 24px
+h3, .h3 {
+  font-size: 1.5rem;
+  line-height: 2*$line-ht;
+}
+
+// 21px
+h4, caption, .h4 {
+  font-size: 1.3333333333rem;
+  line-height: $line-ht;
+}
+
+h5, .h5 {
+  font-size: 1.25rem;
+  line-height: $line-ht;
+}
+
+// 18px
+h6, .h6 {
+  font-size: 1.125rem;
+  line-height: $line-ht;
+}
+
+// 12px
+small, .small, pre.debug {
+  font-size: .75rem;
+  line-height: $line-ht;
+}
+
+// Draw a line under an element (mostly used for h1-6
+//.underline {
+//  @include b-border(1px, $border-lighter);
+//}
+
+
+/* standard text size is 16px */
+//aside {
+//  font-size: 0.875rem;
+//  line-height: $line-ht;
+//}
+
+/**
+@media only screen and (max-width: 479px) {
+  h1 { @include adjust-font-size-to(36px); }
+  h2 { @include adjust-font-size-to(30px); }
+  h3 { @include adjust-font-size-to(24px); }
+  h4 { @include adjust-font-size-to(22px); }
+  h5 { @include adjust-font-size-to(20px); }
+  h6 { @include adjust-font-size-to(18px); }
+}
+*/

@@ -1,0 +1,39 @@
+/* partials/utils */
+
+// General utility css classes
+.floatR {
+    float: right;
+    padding: 0 0 $gutter $gutter;
+}
+.floatL {
+    float: left;
+    padding: 0 $gutter $gutter 0;
+}
+
+.L { text-align: left; }
+.C { text-align: center; }
+.R { text-align: right; }
+.clearR { clear: right; }
+.clearL { clear: left; }
+.clear { clear: both; }
+
+.ib { display: inline-block; }
+
+.screen-reader {
+    @include hidden-text;
+}
+
+.hide, .js_hide {
+  display: none;
+}
+
+// clearfix styling
+.cf {
+	@include cf;
+}
+
+.clearfix:after {
+	content: "";
+	display: table;
+	clear: both;
+}

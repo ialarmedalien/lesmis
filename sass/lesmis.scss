@@ -1,0 +1,26 @@
+// Main SASS file
+
+// Modules
+@import "modules/colours";
+@import "modules/mixins";
+@import "modules/variables";
+
+// @import "modules/fonts";
+
+// set up basic formatting
+@import "modules/base";   // reset
+@import "modules/typo";   // typography
+@import "modules/utils";  // various utility classes
+
+// Partials
+@import "partials/layout";  // general page layouts
+@import "partials/footer";
+@import "partials/header";
+@import "partials/forms";
+
+// print style
+@import "partials/print";
+
+// body { @include background-grid(1.5em, #ccc); }
+// @import "modules/errors";
+

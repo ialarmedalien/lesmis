@@ -1,0 +1,284 @@
+/* css reset plus some sensible default styling. */
+
+*, *:after, *:before {
+  box-sizing: border-box;
+}
+
+/* BASE */
+// Force scrollbar in non-IE and Remove iOS text size adjust without disabling user zoom
+html {
+  height: 100%;
+  font-size: 100%;
+  overflow-y: scroll;
+  // Cancel highlight color when tapping in iOS
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+// Improve default text rendering, handling of kerning pairs and ligatures
+body {
+  min-height: 100%;
+  font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+//  DEFAULT FONT SETTINGS
+  font: #{$font-size} / #{$line-ht-prop} $typeface-page-text;
+  color: $text-color;
+  background-color: $body-bg;
+}
+
+// set borders, padding, margins, vertical align
+html, body,
+// sections
+address, article, aside, footer, header, hgroup, nav, section,
+
+// h1, h2, h3, h4, h5, h6 // set these up separately
+
+// grouping content
+p, blockquote, pre, div,
+dl, dt, dd, ol, ul, li,
+figcaption, figure, main,
+// semantics
+abbr, cite, dfn, em, q, s, small, span, strong, time, var,
+
+// br, wbr, // don't need to specify boxes
+
+code, kbd, samp,
+b, u, i,
+// insertions/deletions
+del, ins, mark,
+// text positioning
+sub, sup,
+
+// tables
+table, caption, col, colgroup, tbody, tfoot, thead, tr, th, td,
+
+// embedded content
+img, /* picture, */
+embed, iframe, object, audio, video, // param, source, track,
+
+// links
+a, map, area,
+
+// form parts
+fieldset, form, label, legend, meter, progress,
+// datalist,
+// button, input, option, optgroup, select, textarea
+
+// interactive elements
+details, summary, // dialog, menu, menuitem,
+// script-related stuff
+canvas, template
+// main
+{
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+}
+
+// leave out the border for these elements
+button, input, optgroup, select, textarea {
+//  in normalize.css
+  margin: 0;
+  font: inherit;
+  padding: 0;
+  vertical-align: middle;
+//  text-transform: $button-transform;
+}
+
+// set line-height on non-inline elements
+html, body,
+address, article, aside, footer, header, hgroup, nav, section,
+p, blockquote, pre, div,
+dl, dt, dd, ol, ul, // li,
+figcaption, figure, main,
+table, caption, col, colgroup, tbody, tfoot, thead, tr, th, td,
+img, // picture,
+embed, iframe, object, audio, video, // param, source, track,
+fieldset, form, label, legend,
+input, textarea,
+details, summary, // dialog, menu, menuitem,
+canvas, template {
+/*    font-size: $font-size; */
+    line-height: $line-ht;
+}
+
+html, body //,
+//    address, article, aside, footer, header, hgroup, nav, section,
+//    figcaption, figure, main,
+//    p, blockquote, pre, div,
+//    dl, dt, dd, ol, ul, li,
+//    table, caption, col, colgroup, tbody, tfoot, thead, tr, th, td,
+//    fieldset, form, label, legend,
+//    input, textarea,
+//    details, summary
+{
+    font-size: $font-size;
+}
+
+// HTML5 DECLARATIONS
+//  - all covered by normalize.css
+//    article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
+//    display: block;
+//    }
+//
+//    audio, canvas, progress, video {
+//    display: inline-block;
+//    }
+//
+//    audio:not([controls]) {
+//    display: none;
+//    height: 0;
+//    }
+//
+//    [hidden], template {
+//    display: none;
+//    }
+
+
+img {
+//  Don't allow <img> be larger than its container
+  max-width: 100%;
+  vertical-align: middle;
+//  in normalize.css
+//  border: 0;
+  -ms-interpolation-mode: bicubic;
+}
+
+//  in normalize.css
+//  svg:not(:root) { overflow: hidden; }
+
+
+
+/* CODE */
+// Allow line wrapping of 'pre'
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+//  in normalize.css
+//  overflow: auto;
+}
+
+pre, code, kbd, samp {
+  font: #{$font-size} / #{$line-ht-prop} $typeface-fixed-width;
+}
+
+p, blockquote, q, pre, address, hr, code, samp, dl, ol, ul, menu, details, summary // form, fieldset, label, td, th, img 16px / 24px */
+{
+  margin: 0 0 $line-ht;
+}
+
+/* TABLES */
+table {
+//  in normalize.css
+//  border-collapse: collapse;
+//  border-spacing: 0;
+  border-width: 0;
+  margin-bottom: $line-ht;
+  empty-cells: show;
+}
+
+th, td {
+  padding: 0 $gutter;
+  border-bottom: 0 solid;
+}
+th {
+  padding: $gutter;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* QUOTES */
+blockquote {
+  quotes: none;
+}
+q {
+  quotes: "\201C" "\201D" "\2018" "\2019";
+}
+blockquote:before, blockquote:after, q:before, q:after {
+  content: none;
+}
+blockquote, q, cite {
+  font-style: italic;
+}
+blockquote {
+  padding-left: $line-ht;
+  border-left: .25rem solid $blockquote-left-bar;
+}
+blockquote > p {
+  padding: 0;
+}
+
+/* LISTS */
+ul {
+  list-style: square outside;
+}
+ol {
+  list-style: decimal outside;
+}
+
+ul, ol {
+  margin: 0 0 $line-ht 2*$font-size;
+}
+
+li ul, li ol {
+  margin-bottom: 0;
+}
+
+@mixin noDot {
+  list-style: none;
+  margin: 0;
+}
+
+.noDot, nav ul {
+    @include noDot;
+}
+
+dd+dt, dt+dt {
+  margin-top: $line-ht;
+}
+
+/* ABBREVIATION */
+abbr[title], dfn[title] {
+    text-decoration: none;
+  border-bottom: 1px dotted $text-color;
+  cursor: help;
+}
+
+/* MARKED/INSERTED/DELETED AND SELECTED TEXT */
+ins, mark {
+  text-decoration: none;
+}
+ins {
+  background: $inserted-text-bg;
+}
+del {
+  text-decoration: line-through;
+}
+
+/* selected text */
+::selection, ::-moz-selection {
+  background: $selcn-bg;
+  color: $selcn;
+  text-shadow: none;
+}
+
+/* OTHERS */
+strong, b, dt {
+  font-weight: bold;
+}
+
+var, address {
+  font-style: normal;
+}
+
+/* Best available ampersand */
+.amp {
+  font-family: Adobe Caslon Pro,Baskerville,"Goudy Old Style","Palatino","Palatino Linotype","Book Antiqua",Georgia,"Times New Roman",Times,serif;
+  font-style: italic;
+  font-size: 110%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+

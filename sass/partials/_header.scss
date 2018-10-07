@@ -1,0 +1,51 @@
+/* partials/headers */
+.navbar-fixed-top {
+  background-color: hue(dk_grey);
+}
+
+header {
+  @include cf;
+  margin-bottom: $line-ht;
+
+  .brand {
+    display: block;
+    float: left;
+  }
+
+  .brand img {
+    height: 86px;
+  }
+
+  .pull-right {
+    float: right;
+  }
+
+  p.floatR {
+    padding: $gutter $gutter 0 0;
+    margin: 0;
+    color: #fff;
+  }
+
+  a, a:visited, a:hover, a:focus, a:active {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .nav {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .nav li {
+    display: inline-block;
+    padding: 0;
+    margin: 0;
+  }
+
+  .nav li a {
+    display: block;
+    padding: .5rem;
+  }
+}
+

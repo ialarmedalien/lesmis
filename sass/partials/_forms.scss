@@ -1,0 +1,30 @@
+/* FORMS */
+
+form ol, form ul {
+    list-style: none;
+    margin: 0;
+}
+
+.control {
+  &__item {
+    &--measure, &--all, &--weights, &--kCores, &--layout {
+      background: #009968;
+      display: inline-block;
+      margin: .25rem $gutter .25rem 0;
+      color: #fff;
+      padding: .5rem 0;
+
+      &:hover, &:active, &.active {
+        background: #00c980
+      }
+    }
+  }
+  &__label {
+    &--measure, &--all, &--weights, &--kCores, &--layout {
+      padding: $gutter;
+    }
+  }
+  &__container {
+    margin-bottom: $line-ht;
+  }
+}

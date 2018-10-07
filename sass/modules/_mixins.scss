@@ -1,0 +1,231 @@
+// modules/mixins
+
+@mixin reset-box {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+@mixin ht-0 {
+    max-height: 0;
+    overflow: hidden;
+}
+
+@mixin ht-max {
+    max-height: 9999rem;
+    overflow: visible;
+}
+
+@mixin hidden-text {
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+@mixin offscreen {
+//    display: none;
+    clip: rect(1px 1px 1px 1px);
+    clip: rect(1px, 1px, 1px, 1px);
+    position: absolute;
+}
+
+@mixin minw($min) {
+	@media only screen and (min-width: $min) {
+		@content;
+	}
+}
+
+@mixin maxw($max) {
+	@media only screen and (max-width: $max) {
+		@content;
+	}
+}
+@mixin minmax($min, $max) {
+	@media only screen and (min-width: $min) and (max-width: $max) {
+		@content;
+	}
+}
+
+// micro clearfix: http://nicolasgallagher.com/micro-clearfix-hack/
+@mixin cf {
+  &:before,
+  &:after {
+    content: " ";
+    display: table;
+  }
+  &:after {
+    clear: both;
+  }
+  @include has-layout;
+}
+
+@mixin has-layout {
+	*zoom: 1;
+}
+
+@mixin background-grid( $size, $colour ) {
+	background-image: linear-gradient(bottom, $colour 5%, rgba(204, 204, 204, 0) 5%);
+	background-size: 100% $size;
+	background-position: left top;
+}
+
+/// Stripe builder
+/// @param {Direction} $direction - Gradient direction
+/// @param {List} $colors - List of colors
+/// @output `background-image` if several colors, `background-color` if only one
+@mixin equal-stripes($direction, $colors) {
+  $length: length($colors);
+
+  @if $length > 1 {
+    $stripes: ();
+
+    @for $i from 1 through $length {
+      $stripe: (100% / $length) * ($i - 1);
+
+      @if $i > 1 {
+        $stripes: append($stripes, nth($colors, $i - 1) $stripe, comma);
+      }
+
+      $stripes: append($stripes, nth($colors, $i) $stripe, comma);
+    }
+
+    background-image: linear-gradient($direction, $stripes);
+  } @else if $length == 1 {
+    background-color: $colors;
+  }
+}
+
+@mixin two-stripes( $direction, $col1, $col2, $stop: 50%) {
+
+    $stripes: ();
+
+    $stripes: append( $stripes, $col1 0, comma);
+    $stripes: append( $stripes, $col1 $stop, comma);
+    $stripes: append( $stripes, $col2 $stop, comma);
+    $stripes: append( $stripes, $col2 100%, comma);
+
+    background: linear-gradient( $direction, $stripes );
+}
+
+
+/// Shorthand mixin for offset positioning
+/// @param {String} $position - Either `relative`, `absolute` or `fixed`
+/// @param {Length} $top [null] - Top offset
+/// @param {Length} $right [null] - Right offset
+/// @param {Length} $bottom [null] - Bottom offset
+/// @param {Length} $left [null] - Left offset
+@mixin position($position, $top: null, $right: null, $bottom: null, $left: null) {
+  position: $position;
+  top: $top;
+  right: $right;
+  bottom: $bottom;
+  left: $left;
+}
+
+/// Page-sized overlay
+@mixin cover-me {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/// shorthand mixin for horizontal / vertical centering
+/// the parent element must have position: relative
+@mixin centre-me($horizontal: true, $vertical: true) {
+  position: absolute;
+  @if ($horizontal and $vertical) {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  } @else if ($horizontal) {
+    left: 50%;
+    transform: translate(-50%, 0);
+  } @else if ($vertical) {
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+}
+
+.centre-hv {
+    @include centre-me( true, true );
+}
+
+$icon-w: 32px;
+$icon-h: 32px;
+
+@mixin icon {
+//	display: inline-block;
+	background-repeat: no-repeat;
+	background-image: url(../images/sprite.svg);
+    background-size: $icon-w;
+}
+
+// these work with individual form elements
+@mixin element-up-arrow {
+	background-image: url("/images/icomoon/SVG/down-arr.svg");
+	background-position: right;
+	background-repeat: no-repeat;
+}
+
+@mixin element-down-arrow {
+	background-image: url("/images/icomoon/SVG/up-arr.svg");
+	background-position: right;
+	background-repeat: no-repeat;
+}
+
+// these work with the horizontal nav bar.
+@mixin icon-up-arr {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMzIgMzIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik05Ljg5IDIxLjIybDYuMTEtNi4xMSA2LjExIDYuMTEgMS44OS0xLjg5LTgtOC04IDh6Ii8+PC9zdmc+");
+//	background-position: 0 0;
+}
+@mixin icon-r-arr {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMzIgMzIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xMS40NSAyMi42MWw2LjExLTYuMTEtNi4xMS02LjExIDEuODktMS44OSA4IDgtOCA4eiIvPjwvc3ZnPg==");
+//	background-position: -48px 0;
+}
+@mixin icon-l-arr {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMzIgMzIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0yMC41NSAyMi40NWwtNi4xMS02LjExIDYuMTEtNi4xMS0xLjg5LTEuODktOCA4IDggOHoiLz48L3N2Zz4=");
+//	background-position: -96px 0;
+}
+@mixin icon-down-arr {
+    background-image: url("data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiB2aWV3Qm94PSIwIDAgMzIgMzIiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik05Ljg4NyAxMS42MTNsNi4xMTMgNi4xMTMgNi4xMTMtNi4xMTMgMS44ODcgMS44ODctOCA4LTgtOHoiLz48L3N2Zz4=");
+//	background-position: -144px 0;
+}
+@mixin icon-minus-box {
+	background-position: -192px 0;
+}
+@mixin icon-minus-sil {
+	background-position: -240px 0;
+}
+@mixin icon-plus-box {
+	background-position: -288px 0;
+}
+@mixin icon-plus-sil {
+	background-position: -336px 0;
+}
+
+// FORM MIXINS
+//--------------------------------------------------------
+
+// BUTTONS
+@mixin pp-button-style($border-color, $bg-color, $fg-color) {
+
+	border: $element-border-width solid $border-color;
+	background: $bg-color;
+	color: $fg-color;	
+
+	&:hover {
+    	background: darken($bg-color, 10%);
+    	border: $element-border-width solid darken($border-color, 10%);
+    	color: darken($fg-color, 10%);
+    }
+    
+    &:active {
+    	background: lighten($bg-color, 10%);
+    	border: $element-border-width solid lighten($border-color, 10%);
+    	color: lighten($fg-color, 10%);
+    }
+    
+}
+

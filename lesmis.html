@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel='stylesheet' type='text/css' href='css/sdk.css' />
+    <link rel='stylesheet' type='text/css' href='css/lesmis.css' />
+    <title>Les Miserables Character Importance</title>
+    <script type="text/javascript" src="js/d3.v5.js"></script>
+    <script type="text/javascript" src="js/keylines.js"></script>
+    <script type="text/javascript" src="js/lesmis.js"></script>
+  </head>
+  <body>
+    <header style="z-index: 9999;" class="navbar navbar-fixed-top kl-top-navbar">
+      <div class="navbar-inner navbar-no-border wrapper">
+        <div class="container cf">
+          <a href="https://eval.keylines.com/welcome.htm" class="brand cf">
+            <img src="im/keylines-logo.png" alt="logo" />
+          </a>
+          <div class="nav-collapse collapse">
+            <p class="navbar-text floatR">Visualisation demo by AJ Ireland for Cambridge Intelligence</p>
+            <ul class="nav floatR clearR kl">
+              <li class="active"><a href="demos.htm">Demos</a></li>
+              <li><a href="https://eval.keylines.com/featured.htm">Documentation</a></li>
+              <li><a href="https://eval.keylines.com/reference.htm">API Reference</a></li>
+              <li><a href="https://eval.keylines.com/downloads.htm">Download</a></li>
+              <li><a href="https://eval.keylines.com/help.htm" class="last-navbar-button">Support</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </header>
+    <div class="wrapper">
+      <article>
+        <h1>Who is the most important character in <i>Les Mis&eacute;rables</i>?</h1>
+        <!-- This is the HTML element that will be used to render the KeyLines component -->
+        <section class='content' id="visualisation">
+          <div class="content__chart" id="kl" style="height: 800px"></div>
+          <div class="content__tooltip" id="tooltip"></div>
+        </section>
+        <aside id="controls">
+          <form id="controls__form"></form>
+        </aside>
+        <section id="measures" class="clear">
+        <p>Initial colours represent groups of characters who co-occur frequently; the width of the paths between nodes in the graph represents the degree of interaction between characters.</p>
+
+          <h3>Centrality Measures, or measures of importance</h3>
+          <dl>
+            <dt>Degree Centrality</dt>
+            <dd>Do you have many connections?</dd>
+        <!--
+            <dt>Weighted Degree Centrality</dt>
+            <dd>Do you have many interactions?</dd>
+         -->
+            <dt>Closeness Centrality</dt>
+            <dd>Are you close to other people?</dd>
+            <dt>Eigenvector Centrality</dt>
+            <dd>Do you have many connections to important people?</dd>
+            <dt>PageRank Centrality</dt>
+            <dd>Do you have many interactions with important people?</dd>
+            <dt>Betweenness Centrality</dt>
+            <dd>Do you help to connect different parts of the network?</dd>
+          </dl>
+        </section>
+      </article>
+    </div>
+    <footer>
+      <p class="wrapper">Visualisation by AJ Ireland
+        <small class="floatR">KeyLines v4.8.1-14041</small>
+      </p>
+    </footer>
+  </body>
+</html>

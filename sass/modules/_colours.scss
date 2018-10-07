@@ -1,0 +1,116 @@
+// modules/colours
+
+$text-color: #333;
+$body-bg: #fff;
+
+$palette: (
+  black:   #333, // rgb(52,52,52);
+  dk_grey: #2d383f, // rgb(90,90,90);
+  mid_grey: rgb(181, 181, 181),
+  dk_green: #009968, // rgb(153,189,60);
+  mid_green: #00c980,  // hover
+);
+
+// footer grey bg: dk_grey
+// footer text: color: rgb(181, 181, 181);
+
+a {
+  color: #00aa70;
+}
+
+a:hover,
+a:focus {
+  color: #00c980;
+}
+
+@function hue($key) {
+  @if map-has-key( $palette, $key ) {
+    @return map-get( $palette, $key );
+  }
+  @if not map-has-key($palette, $key) {
+    @warn "Key `#{$key}` not found in $palette map.";
+  }
+  @return map-get($palette, $key);
+}
+
+// primary colour for the theme
+$primary: hue( dk_green );
+
+.primary-colour-bg {
+  background: $primary;
+}
+
+// change 'null' to a value to set these colours
+// link colours in main body text
+$main-link: $primary;
+$main-link-bg: null;
+
+// visited link
+$main-vlink: darken($main-link, 20%);
+$main-vlink-bg: null;
+
+// hover/focus link, background
+$main-hflink: hue(mid_green);
+$main-hflink-bg: null;
+
+// active link
+$main-alink: saturate(hue(mid_green), 20%);
+$main-alink-bg: null;
+
+
+// inverted colours
+$inv-link: #fff;
+$inv-link-bg: $primary;
+
+$inv-hflink: #fff;
+$inv-hflink-bg: $main-hflink;
+
+$inv-alink: #fff;
+$inv-alink-bg: $main-alink;
+
+// form element border (e.g. on inputs)
+$form-element-border: #333;
+
+// the bar on the left of a blockquote
+$blockquote-left-bar: #666;
+
+// form element border (e.g. on inputs)
+$form-element-border: #333;
+
+// table colours
+$caption-bg: null;
+
+// table head text, bg
+$thead: null;
+$thead-bg: lighten($main-link, 70%);
+
+// table head text, bg
+$tfoot: null;
+$tfoot-bg: lighten($main-link, 70%);
+
+// table contents, even row
+$tr: null;
+$tr-bg: #fff;
+
+// table contents, odd row
+$tr-odd: null;
+$tr-odd-bg: lighten($main-link, 80%);
+
+$inserted-text-bg: null;
+$selcn: null;
+$selcn-bg: null;
+//  swatches for patternlab
+// .palette {
+//   @each $name, $col in $palette {
+//     .swatch--#{$name} {
+//       background: $col;
+//     }
+//   }
+//
+//   @each $name, $col in $palette {
+//     .swatch--#{$name} {
+//       background: $col;
+//     }
+//   }
+// }
+

@@ -1,0 +1,10 @@
+/* partials/footer */
+
+footer {
+  @include cf;
+  clear: both;
+  border-top: .25rem solid $primary;
+  padding-top: $gutter;
+  background: hue( dk_grey );
+  color: hue( mid_grey );
+}

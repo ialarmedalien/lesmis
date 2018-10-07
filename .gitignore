@@ -1,0 +1,10 @@
+js/*
+test
+fonts
+assets
+.reify-cache
+node_modules*
+lib
+yarn*
+package-lock.json
+SpecRunner.html

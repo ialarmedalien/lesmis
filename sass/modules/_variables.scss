@@ -1,0 +1,130 @@
+// modules/variables
+
+// Typography (have to define here due to load order of files)
+
+@font-face {
+  font-family: 'Muli';
+  src: local('Muli-Regular.ttf'), url('../fonts/Muli/Muli-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: normal;
+  font-weight: bold;
+  src: local('Muli-Bold.ttf'), url('../fonts/Muli/Muli-Bold.ttf');
+}
+
+@font-face {
+  font-family: 'Muli';
+  font-style: italic;
+  font-weight: normal;
+  src: local('Muli-Italic.ttf'), url('../fonts/Muli/Muli-Italic.ttf');
+}
+
+@font-face {
+  font-family: 'Raleway';
+  src: local('Raleway-Regular.ttf'), url('../fonts/Raleway/Raleway-Regular.ttf');
+}
+
+$typeface-page-text: Muli, 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+$typeface-display: 'Raleway', 'Open Sans', 'Lucida Sans', 'Lucida Grande', sans-serif;
+$typeface-fixed-width: Menlo, Consolas, "DejaVu Sans Mono", Monaco, monospace;
+
+.typeface-bold-text {
+    font-family: MuliBold, 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+}
+
+.typeface-page-text {
+    font-family: $typeface-page-text;
+}
+.typeface-display {
+    font-family: $typeface-display;
+}
+.typeface-fixed-width {
+    font-family: $typeface-fixed-width;
+}
+
+// $base-font-size: 16px;
+// $base-line-height: 24px;
+
+$font-size: 1rem;
+
+// line height as a proportion of font size for combo font declarations
+$line-ht-prop: 1.5;
+
+// line height, negative ln ht
+
+$line-ht: 1.5rem;
+$neg-line-ht: -1.5rem;
+
+// gutter and negative gutter
+$gutter: .75rem;
+$neg-gutter: -.75rem;
+
+// half and quarter font sizes
+$half-font: .5rem;
+$quarter-font: .25rem;
+
+// set up page widths
+
+$nar-: 479px;
+$nar: 480px;		// narrow = 30rem
+$med-: 767px;
+$med: 768px;		// medium = 48rem
+$half-: 1023px;
+$half: 1024px;
+
+/*
+60rem: narrower
+80rem: full width nav
+
+
+*/
+
+// GENERAL ELEMENT STYLE
+//---------------------------------------------------------------
+
+// elements have a standard border color and width
+$element-border-width: 1px;
+$element-border-color: hue( dk_grey );
+$border-lighter: lighten( $element-border-color, 40% );
+
+
+// visual styles used throughout the site
+$underline: 1px solid hue( dk_grey );		// switch over to using b-border mixin.
+
+
+// FORM ELEMENTS
+//---------------------------------------------------------------
+
+// General variables
+$element-height: 2.5rem;
+$element-padding-sides: 1.5rem;
+
+$element-font-size: 0.9rem;
+
+// Button variables
+$button-height: 3rem; //$element-height;
+$button-padding-sides: $element-padding-sides;
+$button-bgcolor: $primary;
+$button-color: white;
+$button-transform: uppercase;
+
+// Input box variables:
+
+
+// width at which menu starts wrapping
+$menu-wrap-width: 71rem;
+
+// max width
+$wrapper-width: 90rem; // 1440px
+
+// sidebar width
+$cntrl-width: 20%; // of 90rem
+
+// if screen width is more than $wrapper-width + 2 * $sidebar-width, we can show the sidebar menu
+$screen_size: (
+    small-menu-txt: 60,
+    menu-wrap: 80,
+    superwide: 126, // $wrapper-width + 2 * $sidebar-width
+);
