@@ -17,7 +17,7 @@
           </a>
           <div class="nav-collapse collapse">
             <p class="navbar-text floatR">Visualisation demo by AJ Ireland for Cambridge Intelligence</p>
-            <ul class="nav floatR clearR kl">
+            <ul id="navlinks" class="nav floatR clearR kl">
               <li class="active"><a href="demos.htm">Demos</a></li>
               <li><a href="https://eval.keylines.com/featured.htm">Documentation</a></li>
               <li><a href="https://eval.keylines.com/reference.htm">API Reference</a></li>
@@ -32,13 +32,15 @@
       <article>
         <h1>Who is the most important character in <i>Les Mis&eacute;rables</i>?</h1>
         <!-- This is the HTML element that will be used to render the KeyLines component -->
-        <section class='content' id="visualisation">
-          <div class="content__chart" id="kl" style="height: 800px"></div>
-          <div class="content__tooltip" id="tooltip"></div>
-        </section>
-        <aside id="controls">
-          <form id="controls__form"></form>
-        </aside>
+        <div class="flexible">
+          <section class='content cf' id="visualisation">
+            <div class="content__chart" id="kl" style="height: 800px"></div>
+            <div class="content__tooltip" id="tooltip"></div>
+          </section>
+          <aside id="controls">
+            <form id="controls__form"></form>
+          </aside>
+        </div>
         <section id="measures" class="clear">
         <p>Initial colours represent groups of characters who co-occur frequently; the width of the paths between nodes in the graph represents the degree of interaction between characters.</p>
 

@@ -1,6 +1,6 @@
 import d3 from 'd3';
 
- /**
+/**
   * Normalise centrality (or other) data to be on a 0 - 10 scale.
   *
   * @method normalise
@@ -17,7 +17,7 @@ export function normalise ( results ) {
   });
 }
 
- /**
+/**
   * Objectified data about the keylines chart centrality functions
   *
   * @method centralityMeasures
@@ -57,7 +57,7 @@ export function centralityMeasures () {
     'eigenCentrality': {
       opt: {
         value: 'value',
-        all: [ false, true ],
+        all: [ false, true ]
       }
     },
     'pageRank': {

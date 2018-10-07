@@ -8,15 +8,17 @@ import makeFillRange from './palette.js';
 
 import jsonToDataStruct from './json.js';
 
+import tooltip_mixin from './tooltip.js';
+
 export default function klChart ( args ) {
   if ( ! args.object ) {
     console.error( 'No keylines chart object supplied' );
     return;
   }
 
-  let _chart = {
+  let _chart = tooltip_mixin({
     kl: args.object
-  },
+  }),
 
   // the dom ID of the chart object
   _domId = args.object.id(),
@@ -43,6 +45,14 @@ export default function klChart ( args ) {
   // centrality measures
   _rslts = {};
 
+  _chart.domId = function () {
+    return _domId;
+  };
+
+  _chart._char_ix = function () {
+    return _char_ix;
+  };
+
   // data for the chart
   _chart.data = function (_) {
     if ( arguments.length ) {
@@ -57,9 +67,9 @@ export default function klChart ( args ) {
     _chart.init( args );
     _chart.loadData();
     return _chart;
-  }
+  };
 
- /**
+  /**
   * perform various initialisation functions on the chart, including event binding
   *
   * @method init
@@ -79,26 +89,52 @@ export default function klChart ( args ) {
       selectionColour: '#000'
     });
 
-    // Bind a function called when the mouse goes over a node
-    //  _chart.kl.bind('hover', tooltip.show);
-    // or tap it on a mobile device
-    //  _chart.kl.bind('hover', tooltip.show);
-    // Close the tooltip as soon as anything happens
-    //  _chart.kl.bind('viewchange', tooltip.hide);
+    var tip = _chart.tip.init( '#tooltip' );
+    tip
+      .attr('class','d3-tip')
+      .offset([-12, 30]) // offset tooltip padding
+      .direction('e')
+      .html( (item) => {
+        return '<dl><dt style="color: ' + item.b
+          + '" class="name">' + item.d.nice_name
+          + '</dt>'
+          + '<dd>' + _char_ix[ item.id ].links.length + ' connection'
+          + (_char_ix[ item.id ].links.length === 1
+            ? ''
+            : 's')
+          + ( _current.kCores > 0 ? ' (inc. hidden nodes)' : '' )
+          + '</dd>'
+          + ( _current.measure && _current.measure !== 'false'
+            ? '<dd class="measure">' + _current.measure.charAt(0).toUpperCase()
+              + _current.measure.slice(1) + ': ' + (item.e - 1).toFixed(2) + '<br>(normalised to range 0 - 10)</dd>'
+            : '' )
+          + '</dl>';
+      });
+
+    if ( tip ) {
+      // Bind a function called when the mouse goes over a node
+      _chart.kl.bind('hover', tip.show);
+      // or tap it on a mobile device
+      _chart.kl.bind('hover', tip.show);
+      // Close the tooltip as soon as anything happens
+      _chart.kl.bind('viewchange', tip.hide);
+    }
 
     // don't drag links
     _chart.kl.bind('dragstart', name => (name === 'offset') );
 
-    // prevent the user from deleting the selection using the delete key
+    // prevent the user from deleting or editing the selection
     _chart.kl.bind('delete', () => true );
+    _chart.kl.bind('edit', () => true );
 
     return _chart;
 
-  }
+  };
 
- /**
+  /**
   * applies the d3.schemeSet3 colours to nodes and links according to the group
-  * that each node is in. This could/should be made more generic.
+  * that each node is in. This could/should be made more generic for different
+  * colour schemes
   *
   * @method _colourData
   */
@@ -107,7 +143,7 @@ export default function klChart ( args ) {
     // prepare the chart colours
     const cols = makeFillRange( d3.schemeSet3 );
 
-    let tmp = []
+    let tmp = [];
 
     _chart.kl.each({}, (item) => {
       if ( item.type === 'node' ) {
@@ -125,7 +161,7 @@ export default function klChart ( args ) {
 
   };
 
- /**
+  /**
   * ensure data is in the correct form, and then load it into the chart
   * calls jsonToDataStruct to format data and _chart.colourData() to add colours
   *
@@ -134,7 +170,7 @@ export default function klChart ( args ) {
   _chart.loadData = function () {
     // prepare data
     if ( ! _data ) {
-      let parsed = jsonToDataStruct( _prop.data );
+      const parsed = jsonToDataStruct( _prop.data );
       _char_ix = parsed.char_ix;
       _data = parsed.node_link;
     }
@@ -149,8 +185,8 @@ export default function klChart ( args ) {
       items: _data
     }, () => {
       // add the colour data to the nodes, then set the layout and zoom to fit
-      _chart.kl.animateProperties( _chart._colourData(), {time:100}, function () {
-        _chart.kl.layout( _current.layout )
+      _chart.kl.animateProperties( _chart._colourData(), { time:100 }, function () {
+        _chart.kl.layout( _current.layout );
       });
 
       _chart.postLoad();
@@ -159,7 +195,7 @@ export default function klChart ( args ) {
     return _chart;
   };
 
- /**
+  /**
   * functions performed after the chart data has loaded
   * - addition of resizing capabilities
   * - adding controls
@@ -173,71 +209,53 @@ export default function klChart ( args ) {
     _rslts = _chart.calculateAll();
   };
 
+  /**
+  * @method resizeChart
+  * @param w chart width in pixels
+  * @param h chart height in px; set to 0.6 * w by default
+  */
+  function resizeChart ( w, h = 0.75 * w ) {
+    KeyLines.setSize( _domId, w, h );
+    _chart.kl.zoom('fit');
+  }
 
-//  function createMQListener(match, width) {
-//     var query = window.matchMedia(match);
-//     if(query.matches) {
-//       resize(width);
-//     }
-//     query.addListener(function(mq) {
-//       if(mq.matches) {
-//         resize(width);
-//       }
-//     });
-//   }
-
-
- /**
+  /**
   * sets up chart resizing according to the media queries supplied
   * @method addSizeListeners
   */
 
   _chart.addSizeListeners = function () {
 
-//    if (matchMedia) {
 
+    // add in plenty of MQs or the chart gets stuck at some sizes
     const mq_h = {
-      '(max-width: 499px)': 500,
-      '(min-width: 500px) and (max-width: 739px)': 700,
-      '(min-width: 740px) and (max-width: 979px)': 800,
-      '(min-width: 980px)': 900
+      '(max-width: 399px)': 300,
+      '(min-width: 400px) and (max-width: 499px)': 400,
+      '(min-width: 500px) and (max-width: 599px)': 500,
+      '(min-width: 600px) and (max-width: 699px)': 600,
+      '(min-width: 700px) and (max-width: 799px)': 700,
+      // start showing controls now
+      '(min-width: 800px) and (max-width: 979px)': 700,
+      // over 980: set to 800; actual width includes 24px each side
+      '(min-width: 980px) and (max-width: 1199px)': 800,
+      '(min-width: 1200px)': 950
+
     };
 
     Object.keys( mq_h ).forEach( (e) => {
-    // media query event handler
       const mq = window.matchMedia( e );
       if ( mq.matches ) {
-        resizeChart( mq_h[e], mq_h[e] === 500 ? 500 : undefined );
+        resizeChart( mq_h[e] );
       }
       mq.addListener( (mqw) => {
         if ( mqw.matches ) {
-          resizeChart( mq_h[e], mq_h[e] === 500 ? 500  : undefined );
+          resizeChart( mq_h[e] );
         }
       });
-    })
-
-
-//    window.onresize =
-
-    //    window.onresize()
-
-    //   KeyLines.setSize( chart_id, w, h );
-
-    //   _chart.kl.zoom('fit');
-
+    });
   };
 
- /**
-  * @method resizeChart
-  * @param w chart width in pixels
-  * @param h chart height in px; set to 0.6 * w by default
-  */
-  function resizeChart( w, h = 0.6 * w ) {
-    KeyLines.setSize( _domId, w, h );
-    _chart.kl.zoom('fit');
-  }
-
- /**
+  /**
   * Generic click handler added to all control elements
   * @method controlClickHandler
   * @param this - DOM element that triggered the click
@@ -251,7 +269,7 @@ export default function klChart ( args ) {
     _chart.animate({ name: this.name, value: this.value });
   }
 
- /**
+  /**
   * Adds the controls for manipulating the graph display. controlObj holds the
   * magical properties and the elements are added using the d3 data-binding paradigm
   *
@@ -261,23 +279,18 @@ export default function klChart ( args ) {
     const meas = centralityMeasures(),
 
     controlObj = {
-// Standard: our default force-directed graph layout which tries to keep link lengths consistent.
-// Organic: an alternative, highly performant force-based layout which uses a circular arrangement.
-// ,'hierarchy','sequential'
-// Hierarchy: lays out tree-like data top down, usually from a specified node.
-// Sequential: places nodes at distinct levels and minimises crossed links.
-// Lens: places the node in a circle-like grid, with connected nodes next to each other.
-// Radial: places nodes in concentric circles. ==>
-
-// level
-// string
-// The name of the custom property that defines which level a node belongs to in the 'hierarchy', 'radial' and 'sequential' layouts. Custom properties are set on the 'd' property of nodes. The levels on the nodes must be numbers. The lowest number represents the level at the top of the hierarchy.
-// Structural: places nodes which are structurally similar together in the network.
-// Tweak
+      // Standard: our default force-directed graph layout which tries to keep link lengths consistent.
+      // Organic: an alternative, highly performant force-based layout which uses a circular arrangement.
+      // Hierarchy: lays out tree-like data top down, usually from a specified node.
+      // Sequential: places nodes at distinct levels and minimises crossed links.
+      // Lens: places the node in a circle-like grid, with connected nodes next to each other.
+      // Radial: places nodes in concentric circles. ==>
+      // Structural: places nodes which are structurally similar together in the network.
+      // Tweak
       layout: {
         title: 'Chart layout',
         default: 'standard',
-        data: ['standard','organic','lens','structural','radial','hierarchy','sequential'].map(function (l){
+        data: ['standard','organic','lens','structural'].map(function (l){
           return { value: l, label: l.charAt(0).toUpperCase() + l.slice(1) };
         } )
       },
@@ -291,10 +304,10 @@ export default function klChart ( args ) {
         title: 'Use link weights',
         data: [{ label: 'Yes', value: true }, { label: 'No', value: false }]
       },
-      //       all: {
-      //         title: 'Include hidden nodes in analysis',
-      //         data: [{ label: 'Yes', value: true }, { label: 'No', value: false }]
-      //       },
+      //   all: {
+      //     title: 'Include hidden nodes in analysis',
+      //     data: [{ label: 'Yes', value: true }, { label: 'No', value: false }]
+      //   },
       kCores: {
         title: 'Hide nodes with fewer than n connections',
         data: [
@@ -308,7 +321,7 @@ export default function klChart ( args ) {
     },
 
     order = ['measure', 'weights', 'kCores', 'layout'],
-    cntrl = d3.select( _prop.control_id )
+    cntrl = d3.select( _prop.control_id );
 
     // add 'none'
     controlObj.measure.data.push({ label: 'None', value: 'false' });
@@ -354,7 +367,7 @@ export default function klChart ( args ) {
     });
   };
 
- /**
+  /**
   * filter the chart nodes according to the number of connections they have
   *
   * @method setkCores
@@ -371,18 +384,18 @@ export default function klChart ( args ) {
     }
     else if ( value > _current.kCores ) {
       _chart.kl.hide( Object.keys(_rslts.kCores.values).filter(function (id) {
-        return _rslts.kCores.values[id] <= +value;
+        return ( _rslts.kCores.values[id] <= +value );
       }) );
     }
     else {
       _chart.kl.show( Object.keys(_rslts.kCores.values).filter(function (id) {
-        return _rslts.kCores.values[id] >= +value;
+        return ( _rslts.kCores.values[id] > +value );
       }), true );
     }
     _current.kCores = value;
   }
 
- /**
+  /**
   * set the chart layout, and sets _current.layout to that value
   *
   * @method setLayout
@@ -390,12 +403,12 @@ export default function klChart ( args ) {
   */
   function setLayout ( value ) {
     _current.layout = value;
-    // if ( 'sequential','hierarchy','radial')
+    // omit 'sequential','hierarchy','radial' for now
 
     _chart.kl.layout( _current.layout );
   }
 
- /**
+  /**
   * responds to input from the controls; depending on the parameters, it may
   * set the chart layout, filter the nodes in the chart, or apply one of the
   * centrality measures.
@@ -467,7 +480,7 @@ export default function klChart ( args ) {
     }
   };
 
- /**
+  /**
   * Takes an array of objects representing nodes and applies the appropriate
   * node size transformation
   *
@@ -483,7 +496,7 @@ export default function klChart ( args ) {
     });
   };
 
- /**
+  /**
   * calculateAll: calculates all unweighted centrality measures
   * and stores them in an object, keyed by measure_name + '__wt_false'
   *

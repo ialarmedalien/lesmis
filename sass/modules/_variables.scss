@@ -65,21 +65,6 @@ $neg-gutter: -.75rem;
 $half-font: .5rem;
 $quarter-font: .25rem;
 
-// set up page widths
-
-$nar-: 479px;
-$nar: 480px;		// narrow = 30rem
-$med-: 767px;
-$med: 768px;		// medium = 48rem
-$half-: 1023px;
-$half: 1024px;
-
-/*
-60rem: narrower
-80rem: full width nav
-
-
-*/
 
 // GENERAL ELEMENT STYLE
 //---------------------------------------------------------------
@@ -111,20 +96,3 @@ $button-color: white;
 $button-transform: uppercase;
 
 // Input box variables:
-
-
-// width at which menu starts wrapping
-$menu-wrap-width: 71rem;
-
-// max width
-$wrapper-width: 90rem; // 1440px
-
-// sidebar width
-$cntrl-width: 20%; // of 90rem
-
-// if screen width is more than $wrapper-width + 2 * $sidebar-width, we can show the sidebar menu
-$screen_size: (
-    small-menu-txt: 60,
-    menu-wrap: 80,
-    superwide: 126, // $wrapper-width + 2 * $sidebar-width
-);

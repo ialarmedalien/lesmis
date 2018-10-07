@@ -9,41 +9,62 @@
 
 // make sure that all the article content stays in the container
 article {
-  margin: $line-ht 0;
+  margin: $line-ht $line-ht;
   @include cf;
   clear: both;
 }
 
-// smallest screen
-@include maxw( $nar- ) {
+$mq-breakpoints: (
+  mobile:  320px,
+  tablet:  800px,
+  desktop: 980px,
+  wide:    1200px
+);
 
+#navlinks {
+  display:none;
 }
 
-// medium width screen
-@include minmax( $nar, $med- ) {
+@import "modules/mq";
 
-
+@include mq($until: tablet) {
+  article {
+    margin: $line-ht $gutter;
+  }
 }
 
-// large screen
-@include minw( $med ) {
-  .content { // article
-    width: 100% - $cntrl-width;
-    float: left;
-    padding: $line-ht $gutter;
+@include mq($from: tablet) {
+  .flexible {
+    display: flex;
+    flex-direction: row;
   }
-
-  .content.full {
-    width: 100%;
-  }
-
   #controls {
-    width: $cntrl-width;
-    float: right;
+    flex: 1;
   }
-
   footer {
     clear: both;
+  }
+  #navlinks {
+    display: block;
+  }
+}
+
+@include mq($from: tablet, $until: desktop) {
+  #visualisation {
+    width: 724px;
+  }
+}
+
+@include mq($from: desktop, $until: wide) {
+  #visualisation {
+    // chart width + 0.75rem each side
+    width: 824px;
+  }
+}
+
+@include mq($from: wide) {
+  #visualisation {
+    width: 974px;
   }
 }
 

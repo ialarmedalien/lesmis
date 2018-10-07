@@ -1,47 +1,36 @@
 import d3 from 'd3';
 
+/**
 
-// Public - constructs a new tooltip
+  Adapted from d3-tip, https://github.com/Caged/d3-tip
+
+*/
+
+// Public - mixes in tooltip functionality into the chart object
 //
-// Returns a tip
-export default function () {
+// Returns the chart object
+export default function tooltip_mixin ( _chart ) {
+
+  function d3TipDirection () { return 'n'; }
+  function d3TipOffset () { return [0, 0]; }
+  function d3TipHTML () { return ' '; }
+
   var direction   = d3TipDirection,
   offset      = d3TipOffset,
   html        = d3TipHTML,
-  rootElement = document.body,
+  rootElement = null,
   node        = initNode(),
-  chartObj   = null,
   chartNode   = null,
-  point       = null,
-  target      = null;
+  tip         = {};
 
-  //   function tip(vis) {
-  //     svg = getSVGNode(vis)
-  //     if (!svg) return
-  //     point = svg.createSVGPoint()
-  //     rootElement.appendChild(node)
-  //   }
-  function tip (vis) {
-    tip.target( vis );
-    return tip;
-    //     chartNode = getChartNode(vis)
-    //     if (!chartNode) return
-    //     chart_obj = obj
-    //     rootElement.appendChild(node)
-  }
-
-  tip.target = function ( chart ) {
-    var el = d3.select( '#' + chart.id() );
-    if ( ! el ) {
-      console.error('Chart element ' + chart.id() + ' not found');
-      return;
-    }
-    chartNode = getChartNode( el );
+  // initialise a tip and return the tip object
+  tip.init = function (el) {
+    chartNode = getChartNode();
     if (!chartNode) return;
-    chartObj = chart;
+    rootElement = d3.select(el).node();
     rootElement.appendChild(node);
+    return _chart.tip;
   };
-
   // Public - show the tooltip on the screen
   //
   // Returns a tip
@@ -52,28 +41,18 @@ export default function () {
       return;
     }
 
-    var item = chart_obj.getItem(id);
-    console.log( item.d );
-    console.log( this );
+    var item = _chart.kl.getItem(id);
     if (item.type !== 'node') {
       tip.hide();
       return;
     }
-    var coords = chart_obj.viewCoordinates(item.x, item.y);
-    var x = coords.x;
-    var y = coords.y;
-    console.log('x: ' + x + '; y: ' + y );
-
-    // this needs to be a chart item ID
-    var args = Array.prototype.slice.call(arguments);
-    if (args[args.length - 1] instanceof SVGElement) target = args.pop();
-
-    var content = html.apply(this, args),
-    poffset = offset.apply(this, args),
-    dir     = direction.apply(this, args),
+    var
+    coords  = _chart.kl.viewCoordinates(item.x, item.y),
+    content = html(item),
+    poffset = offset(),
+    dir     = direction(),
     nodel   = getNodeEl(),
     i       = directions.length,
-    coords,
     scrollTop  = document.documentElement.scrollTop ||
       rootElement.scrollTop,
     scrollLeft = document.documentElement.scrollLeft ||
@@ -85,10 +64,10 @@ export default function () {
     while (i--) {
       nodel.classed(directions[i], false);
     }
-    coords = directionCallbacks.get(dir).apply(this);
+
     nodel.classed(dir, true)
-      .style('top', (coords.top + poffset[0]) + scrollTop + 'px')
-      .style('left', (coords.left + poffset[1]) + scrollLeft + 'px');
+      .style('top', (coords.y + poffset[0]) + scrollTop + 'px')
+      .style('left', (coords.x + poffset[1]) + scrollLeft + 'px');
 
     return tip;
   };
@@ -198,10 +177,41 @@ export default function () {
     return tip;
   };
 
-  function d3TipDirection () { return 'n'; }
-  function d3TipOffset () { return [0, 0]; }
-  function d3TipHTML () { return ' '; }
+  function initNode () {
+    var div = d3.select(document.createElement('div'));
+    div
+      .style('position', 'absolute')
+      .style('top', 0)
+      .style('opacity', 0)
+      .style('pointer-events', 'none')
+      .style('box-sizing', 'border-box');
 
+    return div.node();
+  }
+
+  //   function getSVGNode(element) {
+  //     var svgNode = element.node()
+  //     if (!svgNode) return null
+  //     if (svgNode.tagName.toLowerCase() === 'svg') return svgNode
+  //     return svgNode.ownerSVGElement
+  //   }
+  function getChartNode () {
+    var node = d3.select('#' + _chart.domId() ).node();
+    if (! node || node.tagName.toLowerCase() !== 'canvas') return null;
+    return node;
+  }
+
+  function getNodeEl () {
+    if (node == null) {
+      node = initNode();
+      // re-add node to DOM
+      rootElement.appendChild(node);
+    }
+    return d3.select(node);
+  }
+
+  var directions = ['n','s','e','w','ne','nw','se','sw'];
+  /**
   var directionCallbacks = {
     n:  directionNorth,
     s:  directionSouth,
@@ -213,7 +223,6 @@ export default function () {
     se: directionSouthEast
   },
   directions = Object.keys(directionCallbacks);
-
   function directionNorth () {
     var bbox = getScreenBBox(this);
     return {
@@ -278,39 +287,6 @@ export default function () {
     };
   }
 
-  function initNode () {
-    var div = d3.select(document.createElement('div'));
-    div
-      .style('position', 'absolute')
-      .style('top', 0)
-      .style('opacity', 0)
-      .style('pointer-events', 'none')
-      .style('box-sizing', 'border-box');
-
-    return div.node();
-  }
-
-  //   function getSVGNode(element) {
-  //     var svgNode = element.node()
-  //     if (!svgNode) return null
-  //     if (svgNode.tagName.toLowerCase() === 'svg') return svgNode
-  //     return svgNode.ownerSVGElement
-  //   }
-  function getChartNode ( element ) {
-    var node = element.node();
-    if (! node || node.tagName.toLowerCase() !== 'canvas') return null;
-    return node;
-  }
-
-  function getNodeEl () {
-    if (node == null) {
-      node = initNode();
-      // re-add node to DOM
-      rootElement.appendChild(node);
-    }
-    return d3.select(node);
-  }
-
   // Private - gets the screen coordinates of a shape
   //
   // Given a shape on the screen, will return an SVGPoint for the directions
@@ -330,6 +306,12 @@ export default function () {
     while (targetel.getScreenCTM == null && targetel.parentNode != null) {
       targetel = targetel.parentNode;
     }
+
+    var coords = chartObj.viewCoordinates(targetShape.x, targetShape.y);
+    var itemx = coords.x;
+    var itemy = coords.y;
+
+
 
     var bbox       = {},
     matrix     = targetel.getScreenCTM(),
@@ -360,7 +342,7 @@ export default function () {
 
     return bbox;
   }
-
+*/
   // Private - replace D3JS 3.X d3.functor() function
   function functor (v) {
     return typeof v === 'function' ? v : function () {
@@ -368,74 +350,6 @@ export default function () {
     };
   }
 
-  return tip;
-}
-
-// Fill the tooltip
-export function nodeTooltip (id) {
-  // id is null for the background
-  if ( null === id ) {
-    hideTooltip();
-    return;
-  }
-
-  if (id) {
-    var item = chart.getItem(id);
-    console.log( item.d );
-    if (item.type === 'node') {
-      var coordinates = chart.viewCoordinates(item.x, item.y);
-      var x = coordinates.x;
-      var y = coordinates.y;
-      console.log('x: ' + x + '; y: ' + y );
-      // Create the HTML code that is going to fill the tooltip
-      var html = '<dl><dt style="color: ' + colours.fill[ item.d.group-1 ] + '" class="name">' + item.d.name.replace('.', '. ')
-        + '</dt>'
-        + '<dd>' + char_ix[ item.id ].links.length + ' connection'
-          + (char_ix[ item.id ].links.length === 1 ? '</dd>' : 's</dd>')
-        + ( current.measure && current.measure !== 'false'
-          ? '<dd class="measure">' + current.measure.charAt(0).toUpperCase() + current.measure.slice(1) + ': ' + item.e.toFixed(2)
-            + '<br>(maximum: 10)</dd>'
-          : '' )
-        + '</dl>';
-
-      var ttip = d3.select('#tooltip');
-      // Add it to the DOM if it doesn't exist
-      if ( ! ttip ) {
-        ttip = d3.select('kl')
-          .append('div')
-          .attr('id', 'tooltip');
-      }
-
-      // hide the tooltip while we make changes
-      ttip
-        .style('position', 'absolute')
-        .style('opacity', 0)
-        .style('pointer-events', 'none')
-        .classed('d3-tip e', true)
-        .html(html);
-
-      var tooltip = d3.select('#tooltip').node();
-
-      var top = y - (tooltip.offsetHeight / 2);
-      ttip
-        .style('left', (x + 20) + 'px')
-        .style('top', top + 'px');
-
-      showTooltip();
-    } else {
-      hideTooltip();
-    }
-  } else {
-    hideTooltip();
-  }
-}
-
-export function closeTooltip () {
-  var tooltip = d3.select('#tooltip');
-  tooltip.style('opacity', 0).style('pointer-events', 'none');
-}
-
-export function showTooltip () {
-  var tooltip = d3.select('#tooltip');
-  tooltip.style('opacity', 1).style('pointer-events', 'all');
+  _chart.tip = tip;
+  return _chart;
 }

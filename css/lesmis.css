@@ -388,12 +388,6 @@ a:focus {
 .typeface-fixed-width {
   font-family: Menlo, Consolas, "DejaVu Sans Mono", Monaco, monospace; }
 
-/*
-60rem: narrower
-80rem: full width nav
-
-
-*/
 /* css reset plus some sensible default styling. */
 *, *:after, *:before {
   box-sizing: border-box; }
@@ -692,7 +686,7 @@ small, .small, pre.debug {
     clear: both; }
 
 article {
-  margin: 1.5rem 0;
+  margin: 1.5rem 1.5rem;
   *zoom: 1;
   clear: both; }
   article:before, article:after {
@@ -701,18 +695,35 @@ article {
   article:after {
     clear: both; }
 
-@media only screen and (min-width: 768px) {
-  .content {
-    width: 80%;
-    float: left;
-    padding: 1.5rem 0.75rem; }
-  .content.full {
-    width: 100%; }
+#navlinks {
+  display: none; }
+
+@media (max-width: 49.99em) {
+  article {
+    margin: 1.5rem 0.75rem; } }
+
+@media (min-width: 50em) {
+  .flexible {
+    display: flex;
+    flex-direction: row; }
   #controls {
-    width: 20%;
-    float: right; }
+    flex: 1; }
   footer {
-    clear: both; } }
+    clear: both; }
+  #navlinks {
+    display: block; } }
+
+@media (min-width: 50em) and (max-width: 61.24em) {
+  #visualisation {
+    width: 724px; } }
+
+@media (min-width: 61.25em) and (max-width: 74.99em) {
+  #visualisation {
+    width: 824px; } }
+
+@media (min-width: 75em) {
+  #visualisation {
+    width: 974px; } }
 
 #visualisation {
   position: relative; }
@@ -806,7 +817,7 @@ header {
   header .pull-right {
     float: right; }
   header p.floatR {
-    padding: 0.75rem 0.75rem 0 0;
+    padding: 0.75rem 0.75rem 0 0.75rem;
     margin: 0;
     color: #fff; }
   header a, header a:visited, header a:hover, header a:focus, header a:active {
