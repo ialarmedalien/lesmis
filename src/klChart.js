@@ -437,12 +437,11 @@ export default function klChart ( args ) {
     }
 
     const measures = centralityMeasures();
-    let opt = {},
-    tmp = [];
 
     if ( args.name === 'measure' && args.value === 'false' ) {
       delete _current.measure;
       if ( ! _rslts['false'] ) {
+        let tmp = [];
         // run the standard layout
         _chart.kl.each({ type:'node' }, function (item) {
           tmp.push( { id: item.id, value: 1 } );
@@ -466,6 +465,7 @@ export default function klChart ( args ) {
       return;
     }
 
+    let opt = { all: true };
     [ 'weights' /* , 'all' */ ].forEach( function (v) {
       if ( _current[ v ] ) {
         opt[v] = _current[v];
