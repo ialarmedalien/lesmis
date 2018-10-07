@@ -31,7 +31,6 @@
     <div class="wrapper">
       <article>
         <h1>Who is the most important character in <i>Les Mis&eacute;rables</i>?</h1>
-        <!-- This is the HTML element that will be used to render the KeyLines component -->
         <div class="flexible">
           <section class='content cf' id="visualisation">
             <div class="content__chart" id="kl" style="height: 800px"></div>
@@ -42,7 +41,8 @@
           </aside>
         </div>
         <section id="measures" class="clear">
-        <p>Initial colours represent groups of characters who co-occur frequently; the width of the paths between nodes in the graph represents the degree of interaction between characters.</p>
+        <p>Initial colours represent groups of characters who co-occur frequently; the width of the paths between nodes in the graph represents the degree of interaction between characters. Hover over a node to view information about the character.</p>
+        <p>Click on the different centrality measures to see how characters change in importance according to which measure is used; the chart nodes will grow or shrink accordingly, with larger node size indicating great centrality (or importance). Measures can be assessed with or without weighting, which takes into account the strength of the connections between nodes.</p>
 
           <h3>Centrality Measures, or measures of importance</h3>
           <dl>
