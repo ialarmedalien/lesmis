@@ -40,5 +40,8 @@ export default function jsonToDataStruct ( json ) {
       w: l.value
     };
   });
+
+  Object.keys( char_ix ).forEach( p => char_ix[p].n_links = char_ix[p].links.length );
+
   return { char_ix: char_ix, node_link: node_arr.concat(link_arr) };
 }

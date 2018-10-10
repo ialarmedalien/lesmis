@@ -4,7 +4,7 @@ import KeyLines from 'KeyLines';
 
 import { normalise, centralityMeasures } from './stats.js';
 
-import makeFillRange from './palette.js';
+import { makeFillRange, makeColourScale, getInterpolatedColours } from './palette.js';
 
 import jsonToDataStruct from './json.js';
 
@@ -26,7 +26,9 @@ export default function klChart ( args ) {
   // current chart settings
   _current = {
     layout: 'standard',
-    kCores: 0
+    kCores: 0,
+    colours: 'schemeSet3',
+//    colourFn: 'group'
   },
 
   _prop = {
@@ -43,7 +45,9 @@ export default function klChart ( args ) {
   _char_ix,
 
   // centrality measures
-  _rslts = {};
+  _rslts = {},
+
+  _animationTime = 500;
 
   // getter for ID of the dom element for the chart
   _chart.domId = function () {
@@ -98,7 +102,7 @@ export default function klChart ( args ) {
       .offset([-12, 30]) // offset tooltip padding
       .direction('ne')
       .html( (item) => {
-        return '<dl><dt style="color: ' + item.b
+        return '<dl><dt style="color: ' + item.c
           + '" class="name">' + item.d.nice_name
           + '</dt>'
           + '<dd>' + _char_ix[ item.id ].links.length + ' connection'
@@ -135,7 +139,7 @@ export default function klChart ( args ) {
   };
 
   /**
-  * applies the d3.schemeSet3 colours to nodes and links according to the group
+  * applies the value in _current.colours to nodes and links according to the group
   * that each node is in. This could/should be made more generic for different
   * colour schemes
   *
@@ -143,19 +147,37 @@ export default function klChart ( args ) {
   */
 
   _chart._colourData = function () {
-    // prepare the chart colours
-    const cols = makeFillRange( d3.schemeSet3 );
+    let value = measure_id(),
+    col = _current.colours;
 
+    if ( col === 'schemeSet3' ) {
+      value = 'group';
+      col = 'schemeSet3'
+    }
+    else if ( value === 'false' ) {
+      value = 'n_links';
+    }
+    else {
+      value = measure_id() + '_norm';
+    }
+
+    // prepare the chart colours
+    const cr = makeColourScale( col );
+
+    // use normalised values and set the scale domain accordingly
+    if ( col !== 'schemeSet3' ) {
+      cr.domain([0,10]);
+    }
     let tmp = [];
 
     _chart.kl.each({}, (item) => {
       if ( item.type === 'node' ) {
-        item.b = cols.border[ _char_ix[ item.id ].group ];
-        item.c = cols.fill[ _char_ix[ item.id ].group ];
+        item.b = cr( _char_ix[ item.id ][ value] );
+        item.c = d3.color(cr( _char_ix[ item.id ][ value ] )).brighter(0.4).hex()
       }
       else {
-        item.c = cols.border[ _char_ix[ item.id1 ].group ];
-        item.c2 = cols.border[ _char_ix[ item.id2 ].group ];
+        item.c = cr( _char_ix[ item.id1 ][ value ] );
+        item.c2 = cr( _char_ix[ item.id2 ][ value ] );
       }
       tmp.push( item );
     });
@@ -188,8 +210,8 @@ export default function klChart ( args ) {
       items: _data
     }, () => {
       // add the colour data to the nodes, then set the layout and zoom to fit
-      _chart.kl.animateProperties( _chart._colourData(), { time:100 }, function () {
-        _chart.kl.layout( _current.layout );
+      _chart.kl.animateProperties( _chart._colourData(), { time: 50 }, function () {
+        _chart.kl.layout( _current.layout, {time: _animationTime } );
       });
 
       _chart.postLoad();
@@ -271,6 +293,17 @@ export default function klChart ( args ) {
   }
 
   /**
+  * Handles the colour change control
+  * @method controlChangeHandler
+  * @param this - DOM element that changed
+  */
+
+  function controlChangeHandler () {
+    setColours(this.value);
+  }
+
+
+  /**
   * Adds the controls for manipulating the graph display. controlObj holds the
   * magical properties and the elements are added using the d3 data-binding paradigm
   *
@@ -318,10 +351,15 @@ export default function klChart ( args ) {
           { label: '3 connections', value: '3' },
           { label: '4 connections', value: '4' }
         ]
+      },
+      colours: {
+        title: 'Choose a colour scheme',
+        data: [{ name: 'Categorical colours (representing groups)', value: 'schemeSet3' }].concat(getInterpolatedColours()),
+        type: 'select'
       }
     },
 
-    order = ['measure', 'weights', 'kCores', 'layout'],
+    order = ['layout', 'measure', 'weights', 'kCores', 'colours'],
     cntrl = d3.select( _prop.control_id );
 
     // add 'none'
@@ -337,36 +375,96 @@ export default function klChart ( args ) {
         .classed('control__title--' + token, true)
         .text( controlObj[token].title );
 
-      let lis = container
-        .append('ul')
-        .classed('noDot control__list--' + token, true)
-        .selectAll('li')
-        .data(controlObj[token].data)
-        .enter()
-        .append('li')
-        .classed('control__item--' + token, true);
-      lis
-        .append('input')
-        .classed('control__radio--' + token, true)
-        .attr('type', 'radio')
-        .attr('id', d => 'radio__' + d.value + '--' + token )
-        .attr('value', d => d.value )
-        .attr('name', token)
-        .attr('hidden', '')
-        .on('change', controlClickHandler);
-      lis
-        .append('label')
-        .classed('control__label--' + token, true)
-        .attr('for', d => 'radio__' + d.value + '--' + token )
-        .text( d => d.label );
-      let dflt = controlObj[token].default || 'false';
+      if ( controlObj[token].type && controlObj[token].type === 'select' ) {
+        let select = container
+          .append('select')
+          .classed('noDot control__select--' + token, true)
+          .on('change', controlChangeHandler)
+          .selectAll('option')
+          .data(controlObj[token].data)
+          .enter()
+          .append('option')
+//          .attr('selected', d => (d.value === _current.colours))
+          .attr('value', d => d.value)
+          .attr('name', token)
+          .text(d => d.name);
+        let qselect = '.control__select--' + token + ' option[value="' + _current[token] + '"]';
+        document.querySelector(qselect).setAttribute('selected','');
+      }
+      else {
+        let lis = container
+          .append('ul')
+          .classed('noDot control__list--' + token, true)
+          .selectAll('li')
+          .data(controlObj[token].data)
+          .enter()
+          .append('li')
+          .classed('control__item--' + token, true);
+        lis
+          .append('input')
+          .classed('control__radio--' + token, true)
+          .attr('type', 'radio')
+          .attr('id', d => 'radio__' + d.value + '--' + token )
+          .attr('value', d => d.value )
+          .attr('name', token)
+          .attr('hidden', '')
+          .on('change', controlClickHandler);
+        lis
+          .append('label')
+          .classed('control__label--' + token, true)
+          .attr('for', d => 'radio__' + d.value + '--' + token )
+          .text( d => d.label );
+        let dflt = controlObj[token].default || 'false';
 
-      document.querySelector('#radio__' + dflt + '--' + token)
-        .setAttribute('checked', '');
-      document.querySelector('#radio__' + dflt + '--' + token)
-        .parentNode.classList.add('active');
+        document.querySelector('#radio__' + dflt + '--' + token)
+          .setAttribute('checked', '');
+        document.querySelector('#radio__' + dflt + '--' + token)
+          .parentNode.classList.add('active');
+        }
     });
+
+    _chart.colourIndicator().init();
   };
+
+  /**
+  * generate the appropriate string for the current measure
+  *
+  * @method measure_id
+  * @returns string of the general form measure_name__wt_(true|false)
+  */
+
+  function measure_id () {
+    if ( ! _current.measure ) {
+      return 'false';
+    }
+    return _current.measure + '__' + ( _current.weights ? 'wt_true' : 'wt_false' );
+  }
+
+  /**
+  * save data from one of the centrality calculations to the 'd' of the chart nodes
+  * also put it in the character index for good measure
+  *
+  * BUG? Data does not seem to stay in the `d` object of the chart nodes
+  *
+  * @method saveToNodes
+  * @param results - array of objects with keys id, abs[olute value], [norm'd] value
+  * @param meas_id - the name of the measure
+  */
+
+  function saveToNodes ( results, meas_id ) {
+    let h = {};
+    results.forEach( e => {
+      h[e.id] = e;
+      _char_ix[e.id][meas_id + '_abs'] = e.abs;
+      _char_ix[e.id][meas_id + '_norm'] = e.value;
+    });
+    // apply the data to the chart nodes
+    // does this data get saved or is it lost?
+    _chart.kl.each({ type: 'node' }, item => {
+      item.d[meas_id + '_abs'] = h[item.id].abs;
+      item.d[meas_id + '_norm'] = h[item.id].value;
+    });
+  }
 
   /**
   * filter the chart nodes according to the number of connections they have
@@ -403,7 +501,7 @@ export default function klChart ( args ) {
   */
   function setLayout ( value ) {
     _current.layout = value;
-    let layout_opt = {};
+    let layout_opt = {time: _animationTime};
     // omit 'sequential' for now
     if ( ['hierarchy', 'radial'].includes(value) ) {
       // set the level
@@ -417,6 +515,19 @@ export default function klChart ( args ) {
     }
 
     _chart.kl.layout( _current.layout, layout_opt );
+  }
+
+  /**
+  * set the chart colour scheme, and sets _current.colours to that value
+  *
+  * @method setColours
+  * @param {value} the new chart layout
+  */
+  function setColours ( value ) {
+    _current.colours = value;
+    // now colour the chart by adding the colour data to the nodes
+    _chart.kl.animateProperties( _chart._colourData(), { time: _animationTime } );
+    _chart.colourIndicator().updateFromChart();
   }
 
   /**
@@ -489,46 +600,6 @@ export default function klChart ( args ) {
     }
   };
 
- /**
-  * generate the appropriate string for the current measure
-  *
-  * @method measure_id
-  * @returns string of the general form measure_name__wt_(true|false)
-  */
-
-  function measure_id () {
-    if ( ! _current.measure ) {
-      return 'false';
-    }
-    return _current.measure + '__' + ( _current.weights ? 'wt_true' : 'wt_false' );
-  }
-
- /**
-  * save data from one of the centrality calculations to the 'd' of the chart nodes
-  * also put it in the character index for good measure
-  *
-  * BUG? Data does not seem to stay in the `d` object of the chart nodes
-  *
-  * @method saveToNodes
-  * @param results - array of objects with keys id, abs[olute value], [norm'd] value
-  * @param meas_id - the name of the measure
-  */
-
-  function saveToNodes( results, meas_id ) {
-    let h = {};
-    results.forEach( e => {
-      h[e.id] = e;
-      _char_ix[e.id][meas_id + '_abs'] = e.abs;
-      _char_ix[e.id][meas_id + '_norm'] = e.value;
-    });
-   // apply the data to the chart nodes
-   // does this data get saved or is it lost?
-    _chart.kl.each({type: 'node'}, item => {
-      item.d[meas_id + '_abs'] = h[item.id].abs;
-      item.d[meas_id + '_norm'] = h[item.id].value;
-    });
-  }
-
   /**
   * Takes an array of objects representing nodes and applies the appropriate
   * node size transformation
@@ -538,11 +609,14 @@ export default function klChart ( args ) {
   *
   */
   _chart.layoutAndAnimate = function (results) {
-    _chart.kl.animateProperties( results.map( d => {
+    // apply colours
+    const cols = _chart._colourData();
+    _chart.kl.animateProperties( cols.concat(results.map( d => {
       d.e = d.value + 1;
       return d;
-    }), {}, function () {
-      _chart.kl.layout( _current.layout );
+    })), {time: _animationTime}, function () {
+      _chart.colourIndicator().updateFromChart();
+      _chart.kl.layout( _current.layout, {time: _animationTime} );
     });
   };
 
@@ -568,6 +642,130 @@ export default function klChart ( args ) {
         saveToNodes(_rslts[m + '__wt_false'], m + '__wt_false');
       }
     });
+  };
+
+  _chart.colourIndicator = function () {
+
+    var ci = {},
+    _id = {
+      blocks: 'colour_indicator--blocks', // for colour blocks
+      axis:  'colour_indicator--axis',  // for the axis
+      text: 'colour_indicator--text', // text description
+    },
+    _block_size = 30,
+    _margin = { l: 10, r: 10 },
+    _blurb = {
+      group: 'Colours represent groups of characters who co-occur frequently',
+      n_links: 'Colours represent how connected a character is',
+      cent: 'Colours represent the level of the current centrality measure'
+    };
+
+    ci.init = function () {
+
+      const ci_div = d3.select(_prop.control_id)
+        .append('div')
+        .attr('id', 'colour_indicator');
+
+      ci_div.append('p')
+        .attr('id', _id.text);
+
+      const svg = ci_div
+        .append('svg')
+        .style('width', 12 * _block_size +  + _margin.l + _margin.r )
+        .style('height', '60');
+
+      // for the colour blocks
+      svg.append('g')
+        .classed('blocks', true)
+        .attr('id', _id.blocks)
+        .attr('transform', 'translate(' + _margin.l + ', 0)');
+
+      // for the axis
+      svg.append('g')
+        .classed('axis', true)
+        .attr('id', _id.axis)
+        .attr('transform', 'translate(' + _margin.l + ',' + ( _block_size + 5 ) + ')' );
+
+      ci.updateFromChart();
+
+    };
+
+    ci.updateFromChart = function () {
+
+      let value = measure_id(),
+      col = _current.colours;
+
+      if ( col === 'schemeSet3' ) {
+        value = 'group';
+        col = 'schemeSet3'
+      }
+      else if ( value === 'false' ) {
+        value = 'n_links';
+      }
+      else {
+        value = measure_id() + '_norm';
+      }
+
+      // prepare the chart colours
+      const scale = makeColourScale( col );
+      let data_arr;
+
+      // use normalised values and set the scale domain accordingly
+      if ( col === 'schemeSet3' ) {
+        data_arr = scale.range().map( (e,i) => i );
+      }
+      else {
+        scale.domain([0,10]);
+        data_arr = d3.range(0,10);
+      }
+
+      d3.select('#' + _id.text)
+        .text( _blurb[ value ] ? _blurb[value] : _blurb.cent );
+
+      // update the set of blocks
+      var blocks = d3.select('#' + _id.blocks)
+        .selectAll('.indicator')
+        .data( data_arr );
+
+      blocks
+        .exit()
+        .transition()
+        .duration(_animationTime)
+        .attr('fill', '#fff')
+        .attr('height', 0)
+        .remove();
+
+      blocks.enter()
+        .append('rect')
+        .classed('indicator', true)
+        .attr('x', (d,i) => _block_size * i)
+        .attr('y', 0)
+        .attr('width', _block_size)
+        .attr('height', 0)
+        .attr('fill', '#fff')
+      .merge(blocks)
+        .transition()
+        .duration(_animationTime)
+        .attr('height', 30)
+        .attr('fill', (d,i) => scale(i) );
+
+      const axisScale = d3.scaleOrdinal()
+        .domain( data_arr )
+        .range([ 0, data_arr.length * _block_size ])
+
+      // add the scale to the axis
+      const axis = d3.axisBottom()
+        .scale( axisScale )
+        .tickValues( col === 'schemeSet3' ? [] : [ 'low', 'high' ]);
+
+      // update the text
+      d3.select('#' + _id.axis)
+        .call(axis);
+
+    };
+
+    return ci;
+
   };
 
   return _chart;
