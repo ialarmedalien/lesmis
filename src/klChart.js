@@ -343,7 +343,7 @@ export default function klChart ( args ) {
       //     data: [{ label: 'Yes', value: true }, { label: 'No', value: false }]
       //   },
       kCores: {
-        title: 'Hide nodes with fewer than n connections',
+        title: 'Hide nodes with n or fewer connections',
         data: [
           { label: "Show all", value: false },
           { label: '1 connection', value: '1' },
